@@ -615,7 +615,7 @@ class LogFile:
             return False
 
 if __name__ == "__main__":
-    network.send_cmd("svsay ELO Script just restarted, please rejoin.")
+    network.send_cmd("svsay ELO Script just restarted, please reconnect.")
 
     logFile = LogFile(config.logname)
 
