@@ -9,10 +9,10 @@ import os
 import config
 
 
-dirpath = "/root/.ja/MBII"
-print("current directory is : " + dirpath)
+#dirpath = "/root/.ja/MBII"
+#print("current directory is : " + dirpath)
 
-line = ""
+#line = ""
 #def get_line1(f=open("test2.txt"), cache=[''], errors='ignore'):
 
  #   for cache[0] in f:

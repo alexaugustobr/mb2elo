@@ -27,7 +27,7 @@ else:
 if cfg['SETTINGS']['logname'] == "LOGNAME":
     logname = default_path + "/MBII/server.log"
 else:
-    logname = default_path + "/MBII/" + cfg['SETTINGS']['logname']
+    logname = cfg['SETTINGS']['logname']
 
 
 if cfg['SETTINGS']['elogain'] == "ELOGAIN":
@@ -35,5 +35,7 @@ if cfg['SETTINGS']['elogain'] == "ELOGAIN":
 else:
     elogain = int(cfg['SETTINGS']['elogain'])
 
+rcon = cfg['SETTINGS']['rcon']
 
-print(port,ip,logname,elogain)
+
+print(port,ip,logname,elogain, rcon)

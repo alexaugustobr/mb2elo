@@ -12,11 +12,11 @@ import config
 #as to not timeout the socket
 
 rconpassword = config.rcon
-prefix = b"\xff\xff\xff\xffrcon " + rconpassword + " "
+prefix = ("\xff\xff\xff\xffrcon %s " % (rconpassword))
 def init_connection(ip = config.ip, port = config.port): #initializes connection, redundant to insert into every function
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.bind((ip, 0))
+    #sock.bind((ip, 0))
     sock.settimeout(10)
     sock.connect((ip, port))
     return sock
@@ -46,13 +46,17 @@ def _send_cmd(string):                  #string is a console command you want to
 
     s = init_connection()
     print("sending cmd")
-    string = string.encode()
+    #string = string.encode()
     try:
-        s.send(prefix + string)
+        msg = prefix + string
+        print("Send:", msg)
+        s.send(msg.encode('iso-8859-1',errors = 'ignore'))
     except:
+        print((sys.exc_info()[0]))
         print("command not sent.")
  
     msg = s.recv(2048)
+    print("Received:", msg)
     if msg.startswith(b'\xff\xff\xff\xffprint'):
         print("command sent")
         print(msg)
@@ -72,13 +76,6 @@ def send_cmd(string):
     thread = threading.Thread(target=_send_cmd, args= (string,))
     thread.start()
     thread.join()
-
-    
-
-
-
-
-
 
 
 

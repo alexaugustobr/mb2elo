@@ -15,6 +15,9 @@ import subprocess
 import shlex
 import sys
 import os
+import config
+import time
+
 #ClientConnect: 0 (IP: 192.168.0.177:29070)
 #ClientConnect: 1 (IP: 192.168.0.123123:29070)
 
@@ -97,7 +100,10 @@ def printplayer(index, list): #[TESTING PURPOSES] prints out a player in stdout
 
 def printlist(list):          #[TESTING PURPOSES] prints out a playerlist in stdout
     for x in list:
-        print("[NAME: " + str(x.name) + "]" + "[ID: " + str(x.id) + "]" + "[IP: " + str(x.ip) + "]" + "[ELO: " + str(x.mmr) + "]")
+        #time.sleep(1)
+        msg = "[NAME: " + str(x.name) + "]" + "[ID: " + str(x.id) + "]" + "[IP: " + str(x.ip) + "]" + "[ELO: " + str(x.mmr) + "]"
+        print(msg)
+        #network.send_cmd("svsay " + msg)
 
 def say_print():              #[TESTING PURPOSES] used to execute the printlist() function from the in-game chat
     print("LIST")
@@ -106,7 +112,7 @@ def say_print():              #[TESTING PURPOSES] used to execute the printlist(
 def say_duel(event_content, name, current_players): #custom "!duel [OPPONENT]" chat command, searches the current_players list for an opponent, duel is only started when two players have a matching opponent, this is obsolete now.
     pindex = searchby_name(name, current_players)
     if pindex == -1:
-        network.send_cmd("Client with \"" + str(name) + "\" name is not initialized, please reconnect.")
+        network.send_cmd("svsay Client with \"" + str(name) + "\" name is not initialized, please reconnect.")
         #cleanup
         del(pindex)
         return False
@@ -140,11 +146,11 @@ def say_chill(i):          #custom !chill command, disables ranked dueling for t
 
 def event_say(event, event_content): # executes if line is a "Say:" event, and processes it further using other methods
     if "say" in event:
-        print("say before:")
-        print(event_content)
-        event_content = event_content.replace("\"", "")
-        print("SAY NOW: ")
-        print(event_content)
+        # print("say before:")
+        # print(event_content)
+        # event_content = event_content.replace("\"", "")
+        # print("SAY NOW: ")
+        # print(event_content)
         name = event_content.split(": ",1)[0]
 
         if "Server" in name:                          #if some wise guy decides to name himself "Server", returns so it doesn't process his chat commands
@@ -442,12 +448,13 @@ def event_clientconnect(event, event_content, player_queue): #adds players to th
 
 
 def test(new_line):                   #This is the "funnel" of the script. Checks each line for events and calls the appropriate functions.
-
+            
             try:                #formatting
                 event = new_line.lstrip().split(":",1)[0]
                 try:
                     event_content = new_line.split(":",1)[1].lstrip()
-                except:
+                except Exception as e:
+                    print("Error in initial processing: ", e)
                     event_content = ""
             except Exception as e:
                 print("Error in initial processing: ", e)
@@ -481,21 +488,20 @@ def test(new_line):                   #This is the "funnel" of the script. Check
             if event_userinfo(event, event_content):
                 return
 
-mypath1 = 'D:/Program Files (x86)/Steam/steamapps/common/Jedi Academy/GameData/MBII/'
 new_line = ""
 
 def load_list():        #loads the players from players.json
-    #try:
-        with open("players.json","r+") as f:
-            file_list = json.load(f)
-            count = 0
-            for clients in file_list:
-                temp = Player(None,clients['ip'],clients['mmr'],clients['name'],None,None,None,None,clients['wins'],clients['losses'])
-                playerlist.append(temp)
-                print(temp.name, temp.id,temp.ip,temp.mmr)
-                count = count + 1
-            print("Loaded",count,"players!")
-            f.close()
+    #flush_list()
+    with open("players.json","r+") as f:
+        file_list = json.load(f)
+        count = 0
+        for clients in file_list:
+            temp = Player(None,clients['ip'],clients['mmr'],clients['name'],None,None,None,None,clients['wins'],clients['losses'])
+            playerlist.append(temp)
+            print(temp.name, temp.id,temp.ip,temp.mmr)
+            count = count + 1
+        print("Loaded",count,"players!")
+        f.close()
 
 
 #this is a function that i have used to upload the playerlist json file to the personal leaderboard that i had owned. I am keeping this in here in case someone might find it useful
@@ -515,7 +521,7 @@ def flush_list(): #Saves the playerlist to the json file.
         json.dump(playerlist, f,default=lambda o: o.__dict__,sort_keys=True,indent=4)
         print("saving playerlist for me")
         f.close()
-    del(data)
+    #del(data)
 
 
 #The initial loading of players upon starting the dedicated server.
@@ -523,10 +529,13 @@ print("Loading players..")
 try:
     load_list()
 except:
+    print((sys.exc_info()[0]))
     print("Error loading list.")
+
 printlist(playerlist)
 
 def check_line(line):       #checks if the line in stoud is a line of interest. Improves performance of the script
+    sayLine = line[0:10]
     if line.startswith("Pl"):
         return True
     if line.startswith("Shut"):
@@ -537,7 +546,7 @@ def check_line(line):       #checks if the line in stoud is a line of interest. 
         return True
     if line.startswith("Kill"):
         return True
-    if "say:" in line[0:10]:
+    if "say:" in sayLine:
         return True
     if line.startswith("ClientUser"):
         return True
@@ -570,10 +579,68 @@ def run_command(command):
             t.start()
             t.join()
             
-run_command("sh start.sh")
+#run_command("sh start.sh")
 
+class LogFile:
+    def __init__(self, serverLogPath):
+        self.serverLogPath = serverLogPath
+        self._lastChangeTime = self.getChangeTime()
+        self.lastLineNumber = self.readAndGetLastLineNumber()
 
-     
+    def read(self):
+        return open(self.serverLogPath, 'r+', encoding="iso-8859-1")
+
+    def readAsArray(self):
+        file = self.read()
+        lines = []
+
+        for line in file:
+            lines.append(line)
+
+        return lines
+
+    def readAndGetLastLineNumber(self):
+        return sum(1 for line in open(self.serverLogPath, 'r+', encoding="iso-8859-1"))
+    
+    def getChangeTime(self):
+        return os.stat(self.serverLogPath).st_mtime
+
+    def isChanged(self):
+        stamp = self.getChangeTime()
+        if stamp != self._lastChangeTime:
+            self._lastChangeTime = stamp
+            self.lastLineNumber = self.readAndGetLastLineNumber()
+            return True
+        else:
+            return False
+
+if __name__ == "__main__":
+    network.send_cmd("svsay ELO Script just restarted, please rejoin.")
+
+    logFile = LogFile(config.logname)
+
+    lastReadedLineNumber = logFile.lastLineNumber
+
+    while True:
+        time.sleep(1)
+
+        if logFile.isChanged():
+
+            text = logFile.readAsArray()
+
+            for i in range(lastReadedLineNumber, logFile.lastLineNumber):
+                line1 = text[i][6:].strip()
+                print("new line:"+line1)
+                if check_line(line1):
+                    # Flushes the stdout to prevent pipe overflow.
+                    # sys.stdout.flush()
+
+                    # Execute something
+                    t = threading.Thread(target=test,args=(line1,))
+                    t.start()
+                    t.join()
+            
+            lastReadedLineNumber = logFile.lastLineNumber
 
 
 

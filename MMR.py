@@ -94,7 +94,9 @@ def search_id2(id, array):
             print("INDEX: " + str(index))
             return index
         index+=1
-    print("Client with ID: " + str(id) + " not found, please reconnect")
+    msg = "Client with ID: " + str(id) + " not found, please reconnect"
+    print(msg)
+    #network.send_cmd("svsay "+msg)
     return -1
 
 
@@ -124,7 +126,9 @@ def search_name2(name, array):
             print("INDEX: " + str(index))
             return index
         index+=1
-    print("Client with that name is not found: [%s]" %(name))
+    msg = "Client with \"" + str(name) + "\" name was not found, please reconnect or join."
+    print(msg)
+    #network.send_cmd("svsay "+msg)
     return -1
         
 
