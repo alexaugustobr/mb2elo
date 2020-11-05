@@ -211,19 +211,19 @@ def event_disconnect(event, event_content, current_players): #executes when the 
 
         print("Removing player..")
 
-        if x.guid != "0":                      #will be triggered if the player is using OpenJK, and will attempt to save the player through his OpenJK GUID
-            for x in playerlist:
-                if x.guid == current_players[pindex].guid:
-                    x.mmr = current_players[pindex].mmr
-                    x.name = current_players[pindex].name
-                    x.wins = current_players[pindex].wins
-                    x.losses = current_players[pindex].losses
-                    x.guid = current_players[pindex].guid
-                    current_players.pop(pindex)
-                    queue_index = searchby_id(pid,player_queue)
-                    if queue_index != -1:
-                        player_queue.pop(queue_index)
-                    return True
+        #if x.guid != "0":                      #will be triggered if the player is using OpenJK, and will attempt to save the player through his OpenJK GUID
+        for x in playerlist:
+            if x.guid == current_players[pindex].guid:
+                x.mmr = current_players[pindex].mmr
+                x.name = current_players[pindex].name
+                x.wins = current_players[pindex].wins
+                x.losses = current_players[pindex].losses
+                x.guid = current_players[pindex].guid
+                current_players.pop(pindex)
+                queue_index = searchby_id(pid,player_queue)
+                if queue_index != -1:
+                    player_queue.pop(queue_index)
+                return True
 
 
 
@@ -615,6 +615,7 @@ class LogFile:
             return False
 
 if __name__ == "__main__":
+    time.sleep(5)
     network.send_cmd("svsay ELO Script just restarted, please reconnect.")
 
     logFile = LogFile(config.logname)
@@ -629,9 +630,9 @@ if __name__ == "__main__":
             text = logFile.readAsArray()
 
             for i in range(lastReadedLineNumber, logFile.lastLineNumber):
-                line1 = text[i][6:].strip()
-                print("new line:"+line1)
-                if check_line(line1):
+                line1 = text[i]
+                print("new line:"+line1.rstrip())
+                if check_line(line1.rstrip()):
                     # Flushes the stdout to prevent pipe overflow.
                     # sys.stdout.flush()
 

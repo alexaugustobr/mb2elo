@@ -16,8 +16,8 @@ prefix = ("\xff\xff\xff\xffrcon %s " % (rconpassword))
 def init_connection(ip = config.ip, port = config.port): #initializes connection, redundant to insert into every function
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    #sock.bind((ip, 0))
-    sock.settimeout(10)
+    sock.bind((ip, 0))
+    sock.settimeout(30)
     sock.connect((ip, port))
     return sock
 
